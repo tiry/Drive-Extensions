@@ -12,7 +12,10 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider):
             file.add_emblem("nxdrive")
         else : 
             if (self.isDriveManagedFile(file)) :
-                self.getDriveManagedFileStatus(file)
+                uri = file.get_uri()[7:]
+                GObject.timeout_add_seconds(1, self.do_update_cb, provider, handle, closure, file, uri)
+                return Nautilus.OperationResult.IN_PROGRESS
+                ##self.getDriveManagedFileStatus(file)
 
         self.callCounter = self.callCounter + 1
         print "Counter => " + str(self.callCounter)
@@ -27,14 +30,18 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider):
         return self.driveRoots
     
     def isDriveRoot(self, file):
-        fileName = urllib.unquote(file.get_uri()[7:])
+        uri = file.get_uri()[7:]
+        print "Strange " + uri
+        fileName = urllib.unquote(uri)
         if (fileName in self.getNuxeoDriveRoots()):
             return True
         else:
             return False
     
     def isDriveManagedFile(self, file):
-        fileName = urllib.unquote(file.get_uri()[7:])
+        uri = file.get_uri()[7:]
+        print "Strange " + uri 
+        fileName = urllib.unquote(uri)
         for root in self.getNuxeoDriveRoots() :
             if (fileName.startswith(root)) : 
                 return True
@@ -47,5 +54,11 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider):
         
     def do_update_cb(self, provider, handle, closure, file):
         print "update_cb " + str(file)
+        self.getDriveManagedFileStatus(file)
         #file.add_emblem("OK")
         Nautilus.info_provider_update_complete_invoke(closure, provider, handle, Nautilus.OperationResult.COMPLETE)
+        print "update done"
+        return False
+
+
+
