@@ -109,10 +109,22 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
             self.syncStatuses = self.driveExec(['status',
                                                 '--folder', folder_uri])
             self.currentFolderUri = folder_uri
+        icon_set = False
         for t in self.syncStatuses:
             if (t[0] == urllib.unquote(file_.get_name())):
                 print "Status of " + t[0] + " = " + t[1]
-        file_.add_emblem("drive_sync")
+                status = t[1]
+                status_icon = self.get_status_icon(status)
+                file_.add_emblem(status_icon)
+                icon_set = True
+        if not icon_set:
+            file_.add_emblem('drive_not_sync')
+
+    def get_status_icon(self, status):
+        if status == 'synchronized':
+            return 'drive_sync'
+        else:
+            return 'drive_pending'
 
     def do_update_cb(self, provider, handle, closure, file_, uri):
         print "running async callback on " + str(file.get_uri())
