@@ -15,11 +15,11 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
         self.currentFolderUri = None
         self.syncStatuses = None
 
-    # Call back for fule info
+    # Call back for file info
     def update_file_info_full(self, provider, handle, closure, file_):
         if (self.isDriveRoot(file_)):
             print "Detected Nuxeo Drive folder: " + file_.get_uri()
-            file_.add_emblem("nxdrive")
+            file_.add_emblem("drive_sync")
         else:
             if (self.isDriveManagedFile(file_)):
                 uri = file_.get_uri()[7:]
@@ -112,7 +112,7 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
         for t in self.syncStatuses:
             if (t[0] == urllib.unquote(file_.get_name())):
                 print "Status of " + t[0] + " = " + t[1]
-        file_.add_emblem("drive-sync")
+        file_.add_emblem("drive_sync")
 
     def do_update_cb(self, provider, handle, closure, file_, uri):
         print "running async callback on " + str(file.get_uri())
