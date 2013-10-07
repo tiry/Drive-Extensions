@@ -17,6 +17,7 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
     # Call back for fule info
     def update_file_info_full(self, provider, handle, closure, file_):
         if (self.isDriveRoot(file_)):
+            print "IsRoot : " + file_.get_uri()
             file_.add_emblem("nxdrive")
         else:
             if (self.isDriveManagedFile(file_)):
@@ -69,7 +70,7 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
 
     def getNuxeoDriveRoots(self):
         if (len(self.driveRoots) == 0):
-            self.driveRoots = ["/home/ataillefer/Nuxeo Drive"]
+            self.driveRoots = ["/home/tiry/Nuxeo Drive"]
         return self.driveRoots
 
     def isDriveRoot(self, file_):
@@ -90,7 +91,7 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
 
     def getDriveManagedFileStatus(self, file_, uri):
         # XXX
-        file_.add_emblem("OK")
+        file_.add_emblem("drive-sync")
 
     def do_update_cb(self, provider, handle, closure, file_, uri):
         print "running async callback on " + str(file.get_uri())
