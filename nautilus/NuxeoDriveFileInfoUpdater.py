@@ -18,7 +18,7 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
     # Call back for fule info
     def update_file_info_full(self, provider, handle, closure, file_):
         if (self.isDriveRoot(file_)):
-            print "IsRoot : " + file_.get_uri()
+            print "Detected Nuxeo Drive folder: " + file_.get_uri()
             file_.add_emblem("nxdrive")
         else:
             if (self.isDriveManagedFile(file_)):
@@ -72,14 +72,15 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
     def driveExec(self, cmds):
         # add the ndrive command !
         cmds.insert(0, "ndrive")
-        print "cmds = " + str(cmds)
+        print "Executing ndrive command: " + str(cmds)
         p = subprocess.Popen(cmds, stdout=subprocess.PIPE)
         result, _ = p.communicate()
-        print "result = " + result
+        print "Result = " + result
         return eval(result)
 
     def getNuxeoDriveRoots(self):
         if (len(self.driveRoots) == 0):
+            print "Getting Nuxeo Drive local folders"
             self.driveRoots = [urllib.quote(x) for x in
                                 self.driveExec(['local_folders', ])]
         return self.driveRoots
@@ -89,7 +90,6 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
         if (path in self.getNuxeoDriveRoots()):
             return True
         else:
-            print path + " is not a root"
             return False
 
     def isDriveManagedFile(self, file_):
@@ -104,15 +104,13 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
         folder_uri = file_.get_parent_uri()[7:]
         if (not self.currentFolderUri == folder_uri):
             folder_uri = urlparse.urlparse(urllib.unquote(folder_uri)).path
-            print "call status on " + folder_uri
+            print "Getting Nuxeo Drive status for " + folder_uri
             self.syncStatuses = self.driveExec(['status',
                                                 '--folder', folder_uri])
             self.currentFolderUri = folder_uri
         for t in self.syncStatuses:
-            print ("check " + t[0]
-                   + " against " + urllib.unquote(file_.get_name()))
             if (t[0] == urllib.unquote(file_.get_name())):
-                print "!!!status = " + t[1]
+                print "Status of " + t[0] + " = " + t[1]
         file_.add_emblem("drive-sync")
 
     def do_update_cb(self, provider, handle, closure, file_, uri):
