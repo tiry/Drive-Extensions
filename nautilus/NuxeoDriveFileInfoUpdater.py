@@ -85,7 +85,7 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider, Nautilus
 
     def getDriveManagedFileStatus(self, file, uri):
         # XXX
-        file.add_emblem("OK")
+        file.add_emblem("drive-sync")
 
         
     def do_update_cb(self, provider, handle, closure, file, uri):
