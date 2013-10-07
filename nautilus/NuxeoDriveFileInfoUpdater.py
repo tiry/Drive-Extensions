@@ -18,7 +18,7 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
     # Call back for file info
     def update_file_info_full(self, provider, handle, closure, file_):
         if (self.isDriveRoot(file_)):
-            print "Detected Nuxeo Drive folder: " + file_.get_uri()
+            # print "Detected Nuxeo Drive folder: " + file_.get_uri()
             file_.add_emblem("drive_sync")
         else:
             if (self.isDriveManagedFile(file_)):
@@ -72,15 +72,15 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
     def driveExec(self, cmds):
         # add the ndrive command !
         cmds.insert(0, "ndrive")
-        print "Executing ndrive command: " + str(cmds)
+        # print "Executing ndrive command: " + str(cmds)
         p = subprocess.Popen(cmds, stdout=subprocess.PIPE)
         result, _ = p.communicate()
-        print "Result = " + result
+        # print "Result = " + result
         return eval(result)
 
     def getNuxeoDriveRoots(self):
         if (len(self.driveRoots) == 0):
-            print "Getting Nuxeo Drive local folders"
+            # print "Getting Nuxeo Drive local folders"
             self.driveRoots = [urllib.quote(x) for x in
                                 self.driveExec(['local_folders', ])]
         return self.driveRoots
@@ -103,17 +103,21 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
         # XXX
         folder_uri = file_.get_parent_uri()
         folder_uri = urlparse.urlparse(urllib.unquote(folder_uri)).path
-        t = self.currentFolderUri if self.currentFolderUri is not None else ""
+#         currentFolderUri = (self.currentFolderUri
+#                             if self.currentFolderUri is not None else '')
+        # print "self.currentFolderUri = " + currentFolderUri
+        # print "folder_uri = " + folder_uri
         if (not self.currentFolderUri == folder_uri):
-            print "Getting Nuxeo Drive status for " + folder_uri
+            # print "Getting Nuxeo Drive status for " + folder_uri
             self.syncStatuses = self.driveExec(['status',
                                                 '--folder', folder_uri])
             self.currentFolderUri = folder_uri
         icon_set = False
         for t in self.syncStatuses:
             if (t[0] == urllib.unquote(file_.get_name())):
-                print "Status of " + t[0] + " = " + t[1]
+                # filename = t[0]
                 status = t[1]
+                # print "Status of " + filename + " = " + status
                 status_icon = self.get_status_icon(status)
                 file_.add_emblem(status_icon)
                 icon_set = True
@@ -127,12 +131,12 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
             return 'drive_pending'
 
     def do_update_cb(self, provider, handle, closure, file_, uri):
-        print "running async callback on " + str(file.get_uri())
+        # print "Running async callback on " + str(file.get_uri())
         self.getDriveManagedFileStatus(file, uri)
         # Notify that we are done !
         Nautilus.info_provider_update_complete_invoke(closure, provider,
                                             handle,
                                             Nautilus.OperationResult.COMPLETE)
-        print "update done"
+        # print "Update done"
         # return False to kill the timeout !
         return False
