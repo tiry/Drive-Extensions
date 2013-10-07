@@ -15,6 +15,7 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider, Nautilus
     # Call back for fule info
     def update_file_info_full(self, provider, handle, closure, file):
         if (self.isDriveRoot(file)) :
+            print "IsRoot : " + file.get_uri()
             file.add_emblem("nxdrive")
         else : 
             if (self.isDriveManagedFile(file)) :
