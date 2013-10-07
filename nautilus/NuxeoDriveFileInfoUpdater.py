@@ -1,13 +1,18 @@
 from gi.repository import Nautilus, GObject
 import urllib
+#from gtk import Label
+#import gtk
+#import os
+from gi.repository import Gtk
 
-class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider):
+class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider, Nautilus.PropertyPageProvider):
 
     def __init__(self):
         self.driveRoots = []
         self.callCounter=0
         self.runAsync = False
     
+    # Call back for fule info
     def update_file_info_full(self, provider, handle, closure, file):
         if (self.isDriveRoot(file)) :
             file.add_emblem("nxdrive")
@@ -24,6 +29,31 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider):
         self.callCounter = self.callCounter + 1
         # print "Counter => " + str(self.callCounter)
         return Nautilus.OperationResult.COMPLETE
+
+    def get_property_pages(self, files):
+        if not len(files):
+            return
+        if (len(files)>1):
+            return
+        for file in files:
+            if (not self.isDriveManagedFile(file)) :
+                return
+
+        self.property_label = Gtk.Label('Nuxeo Drive')
+        self.property_label.show()
+        self.hbox = Gtk.HBox(0, False)
+        self.hbox.show()
+
+        label = Gtk.Label('Last sync :')
+        label.show()
+        self.hbox.pack_start(label, expand=True, fill = True, padding = 0)
+        self.value_label = Gtk.Label()
+        self.hbox.pack_start(self.value_label, expand=True, fill = True, padding = 0)
+        self.value_label.set_text("???")
+        self.value_label.show()
+		
+        return Nautilus.PropertyPage(name = "NautilusPython::nuxeodrive",
+                                     label = self.property_label, page = self.hbox),
 
     def decode(self,uri) :
         try:
