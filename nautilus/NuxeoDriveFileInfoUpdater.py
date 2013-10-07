@@ -1,10 +1,8 @@
 from gi.repository import Nautilus, GObject
 import urllib
-#from gtk import Label
-#import gtk
-#import os
+import subprocess
+import urlparse
 from gi.repository import Gtk
-
 
 class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
                                 Nautilus.PropertyPageProvider):
@@ -13,6 +11,8 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
         self.driveRoots = []
         self.callCounter = 0
         self.runAsync = False
+        self.currentFolderUri = None
+        self.syncStatuses = None
 
     # Call back for fule info
     def update_file_info_full(self, provider, handle, closure, file_):
@@ -68,29 +68,48 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
             print "Error while processing " + uri
             return uri.replace("%20", " ")
 
+    def driveExec(self, cmds) :
+        # add the ndrive command !
+        cmds.insert(0,"ndrive")
+        print "cmds = " + str(cmds)
+        p = subprocess.Popen(cmds,stdout=subprocess.PIPE)
+        result, err = p.communicate()
+        print "result = " + result
+        return eval(result)       
+
     def getNuxeoDriveRoots(self):
         if (len(self.driveRoots) == 0):
-            self.driveRoots = ["/home/tiry/Nuxeo Drive"]
+            self.driveRoots = [urllib.quote(x) for x in self.driveExec(['local_folders',])]
         return self.driveRoots
 
     def isDriveRoot(self, file_):
-        uri = file_.get_uri()[7:]
-        fileName = self.decode(uri)
-        if (fileName in self.getNuxeoDriveRoots()):
+        path = urlparse.urlparse(file_.get_uri()).path
+        if (path in self.getNuxeoDriveRoots()):
             return True
         else:
+            print path + " is not a root"
             return False
 
     def isDriveManagedFile(self, file_):
-        uri = file_.get_uri()[7:]
-        fileName = self.decode(uri)
+        path = urlparse.urlparse(file_.get_uri()).path
         for root in self.getNuxeoDriveRoots():
-            if (fileName.startswith(root)):
+            if (path.startswith(root)):
                 return True
         return False
 
     def getDriveManagedFileStatus(self, file_, uri):
         # XXX
+        uri = file_.get_uri()[7:]
+        folder_uri = file_.get_parent_uri()[7:]        
+        if (not self.currentFolderUri == folder_uri):
+            folder_uri = urlparse.urlparse(urllib.unquote(folder_uri)).path
+            print "call status on " + folder_uri
+            self.syncStatuses = self.driveExec(['status','--folder', folder_uri]) 
+            self.currentFolderUri = folder_uri
+        for t in self.syncStatuses:
+            print "check " + t[0] + " against " + urllib.unquote(file_.get_name())
+            if (t[0]==urllib.unquote(file_.get_name())):
+                print "!!!status = " + t[1]
         file_.add_emblem("drive-sync")
 
     def do_update_cb(self, provider, handle, closure, file_, uri):
