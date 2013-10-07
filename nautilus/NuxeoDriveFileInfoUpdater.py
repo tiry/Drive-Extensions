@@ -101,9 +101,10 @@ class NuxeoDriveFileInfoUpdater(GObject.GObject, Nautilus.InfoProvider,
 
     def getDriveManagedFileStatus(self, file_, uri):
         # XXX
-        folder_uri = file_.get_parent_uri()[7:]
+        folder_uri = file_.get_parent_uri()
+        folder_uri = urlparse.urlparse(urllib.unquote(folder_uri)).path
+        t = self.currentFolderUri if self.currentFolderUri is not None else ""
         if (not self.currentFolderUri == folder_uri):
-            folder_uri = urlparse.urlparse(urllib.unquote(folder_uri)).path
             print "Getting Nuxeo Drive status for " + folder_uri
             self.syncStatuses = self.driveExec(['status',
                                                 '--folder', folder_uri])
