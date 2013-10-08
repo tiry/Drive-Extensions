@@ -42,11 +42,11 @@ class IconOverlay:
     def __init__(self):
         nxlog("Starting")
 
-    def get_overlay_info(self):
+    def GetOverlayInfo(self):
         nxlog("return Normal icon")
         return (r'C:\Drive\NormalIcon.ico', 0, shellcon.ISIOI_ICONFILE)
 
-    def get_priority(self):
+    def GetPriority(self):
         return 50
 
     def IsMemberOf(self, fname, attributes):
